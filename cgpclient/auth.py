@@ -54,8 +54,10 @@ class APIKeyAuthProvider:
         log.debug("Using standard API key header")
         return {"X-API-Key": self.api_key}
 
+
 class GelBasicAuthProvider:
     """Basic Internal Auth for GeL"""
+
     def __init__(self, api_key: str, api_host: str):
         self.api_key = api_key
         self.api_host = api_host
@@ -63,6 +65,7 @@ class GelBasicAuthProvider:
     def get_headers(self) -> dict[str, str]:
         log.debug("Using internal GeL API key in authentication header")
         return {"Authorization": f"Bearer {self.api_key}"}
+
 
 class OAuthProvider:
     """OAuth JWT authentication provider for NHS APIM"""

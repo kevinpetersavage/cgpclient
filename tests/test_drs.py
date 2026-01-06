@@ -6,11 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cgpclient.client import CGPClient
-from cgpclient.drs import (
-    CGPDrsClient,
-    DrsObject,
-    map_drs_to_https_url,
-)
+from cgpclient.drs import CGPDrsClient, DrsObject, map_drs_to_https_url
 from cgpclient.utils import CGPClientException
 
 

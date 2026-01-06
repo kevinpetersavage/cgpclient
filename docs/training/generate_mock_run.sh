@@ -4,7 +4,7 @@
 NUM_SAMPLES=2
 LANE="1"
 READ_LENGTH=151
-READS_PER_SAMPLE=1000 
+READS_PER_SAMPLE=1000
 
 # Function to generate random DNA sequence
 generate_dna_sequence() {
@@ -26,7 +26,7 @@ create_fastq() {
     local read_num=$3
     local num_reads=$4
     local read_length=$5
-    
+
     for i in $(seq 1 $num_reads); do
         echo "@${sample_id}:1:${FLOWCELL_ID}:1:1101:${i}:${i} ${read_num}:N:0:ATCGATCG"
         generate_dna_sequence $read_length
@@ -52,7 +52,7 @@ done
 # Generate FASTQ files directly in run directory
 for i in $(seq 1 $NUM_SAMPLES); do
     SAMPLE_ID=${SAMPLE_IDS[$i]}
-    
+
     echo "Generating FASTQ files for sample ${SAMPLE_ID}..."
     create_fastq "${RUN_ID}/${SAMPLE_ID}_S${i}_L00${LANE}_R1_001.fastq.ora" "${SAMPLE_ID}" "1" "${READS_PER_SAMPLE}" "${READ_LENGTH}"
     create_fastq "${RUN_ID}/${SAMPLE_ID}_S1000_L00${LANE}_R2_001.fastq.ora" "${SAMPLE_ID}" "2" "${READS_PER_SAMPLE}" "${READ_LENGTH}"

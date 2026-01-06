@@ -2,6 +2,7 @@
 # pylint: disable=wrong-import-order, redefined-outer-name, ungrouped-imports, line-too-long, too-many-arguments, protected-access
 
 
+import copy
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -299,3 +300,59 @@ def test_search_serv_reqs(mock_get: MagicMock, serv_req_bundle: dict) -> None:
     )
     serv_reqs = fhir.search_for_service_requests()
     assert len(serv_reqs) == 1
+
+
+@patch("cgpclient.fhir.requests.get")
+def test_search_resource_max_results(mock_get: MagicMock, doc_ref_bundle: dict) -> None:
+    """Test that the max_results parameter is respected"""
+
+    class MockedResponse:
+        _page = 0
+
+        def __init__(self):
+            # have to reset page for each call to response
+            self._page = self.__class__._page
+            self.__class__._page += 1
+
+        def ok(self):
+            return True
+
+        def json(self):
+            # return a next link for the first 9 pages
+            response_bundle = copy.deepcopy(doc_ref_bundle)
+            if self._page < 9:
+                response_bundle["link"] = [
+                    {
+                        "relation": "next",
+                        "url": "https://example.com/fhir/DocumentReference?_page=2",
+                    }
+                ]
+            else:
+                response_bundle.pop("link", None)
+            # Add 100 entries to the bundle
+            response_bundle["entry"] = response_bundle["entry"] * 100
+            return response_bundle
+
+    # Reset the page counter for the class
+    MockedResponse._page = 0
+    mock_get.return_value = MockedResponse()
+
+    config: FHIRConfig = FHIRConfig()
+
+    fhir: CGPFHIRClient = CGPFHIRClient(
+        api_base_url="host", headers={}, config=config, dry_run=False
+    )
+    bundle = fhir.search_for_fhir_resource(
+        resource_type="DocumentReference", max_results=250
+    )
+    assert mock_get.call_count == 3
+    assert len(bundle.entry) == 250
+
+    # Test default
+    mock_get.reset_mock()
+    MockedResponse._page = 0
+    mock_get.return_value = MockedResponse()
+    bundle = fhir.search_for_fhir_resource(resource_type="DocumentReference")
+    # default is 1000, so 10 pages * 100 entries
+    assert mock_get.call_count == 10
+    assert len(bundle.entry) == 1000

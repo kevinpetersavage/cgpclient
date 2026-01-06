@@ -51,10 +51,10 @@ from cgpclient.utils import (
 log = logging.getLogger(__name__)
 
 MAX_SEARCH_RESULTS = 100
+DEFAULT_MAX_RESULTS = 1000
 MAX_UNSIGNED_INT = (
     2147483647  # https://hl7.org/fhir/R4/datatypes.html#unsignedInt # noqa: E501
 )
-MAX_PAGES = 100
 
 
 # Enumerations for various FHIR resource fields
@@ -199,7 +199,7 @@ class CGPFHIRClient:
     ) -> Bundle:
         """Peform a search request and page through the results"""
         pages = 1
-        while pages <= MAX_PAGES:
+        while True:
             response = requests.get(
                 url=url,
                 headers=self.headers,
@@ -225,7 +225,6 @@ class CGPFHIRClient:
                     return
             else:
                 raise CGPClientException(f"Failed to fetch from endpoint: {url}")
-        log.info("Reached maximum number of pages")
 
     def _merge_bundles(self, bundles: list[Bundle]) -> Bundle:
         """Merge a list of Bundles into a single one, retaining the
@@ -236,7 +235,10 @@ class CGPFHIRClient:
         return first
 
     def search_for_fhir_resource(
-        self, resource_type: str, query_params: list[tuple] = []
+        self,
+        resource_type: str,
+        query_params: list[tuple] = [],
+        max_results: int | None = None,
     ) -> Bundle:
         """Search for a FHIR resource using the query parameters"""
         url = f"{self.base_url}/{resource_type}"
@@ -252,12 +254,26 @@ class CGPFHIRClient:
         log.info("Requesting endpoint: %s", url)
         log.info("Query parameters: %s", query_params)
 
+        if max_results is None:
+            max_results = DEFAULT_MAX_RESULTS
+
         bundles: list[Bundle] = []
+        total_results = 0
+        for bundle in self._search_paged(url=url, query_params=query_params):
+            if bundle.entry:
+                bundles.append(bundle)
+                total_results += len(bundle.entry)
+            if total_results >= max_results:
+                break
 
-        for response in self._search_paged(url=url, query_params=query_params):
-            bundles.append(response)
+        if not bundles:
+            return Bundle(type="searchset", entry=[])
 
-        return self._merge_bundles(bundles)
+        merged_bundle = self._merge_bundles(bundles)
+        if merged_bundle.entry and len(merged_bundle.entry) > max_results:
+            merged_bundle.entry = merged_bundle.entry[:max_results]
+
+        return merged_bundle
 
     def search_for_tasks(self, search_params: FHIRConfig | None = None) -> list[Task]:
         query_params: list[tuple] = []
@@ -283,7 +299,9 @@ class CGPFHIRClient:
                 )
 
     def search_for_document_references(
-        self, search_params: FHIRConfig | None = None
+        self,
+        search_params: FHIRConfig | None = None,
+        max_results: int | None = None,
     ) -> list[DocumentReference]:
         """Search for DocumentReferences using the parameters in the FHIR
         config"""
@@ -333,6 +351,7 @@ class CGPFHIRClient:
         bundle: Bundle = self.search_for_fhir_resource(
             resource_type=DocumentReference.__name__,
             query_params=query_params,
+            max_results=max_results,
         )
 
         if bundle.entry:

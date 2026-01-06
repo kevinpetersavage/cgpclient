@@ -1,4 +1,4 @@
-*[AD]: Active Directory 
+*[AD]: Active Directory
 *[CIP-API]: Clinical Interpretation Partner Application Programming Interface
 *[CVA]: Clinical Variant Ark
 *[DSS]: Decision Support System
@@ -18,7 +18,7 @@
 *[RoQs]: Reporting Outcomes Questionnaire
 *[SIT]: System Integration Testing
 *[SoFs]: Summary of Findings
-*[SoF]: Summary of Findings 
+*[SoF]: Summary of Findings
 *[SMS]: Sample Matching Service
 *[SNP]: Single Nucleotide Polymorphism
 *[TINC]: Tumour In Normal Contamination

@@ -139,7 +139,7 @@ nano ~/.cgpclient/config.yaml
 Add the following configuration (replace the placeholder values):
 
 ```yaml
-api_host: internal-dev.api.service.nhs.uk 
+api_host: internal-dev.api.service.nhs.uk
 api_name: genomic-data-access
 api_key: YOUR_API_KEY_HERE  # API key from the NHS Developer Hub
 private_key_pem: /absolute/path/to/test-1.pem # Path to your private key
@@ -223,7 +223,7 @@ Download the following [IGV.js HTML snippet](./igv_snippet.html) (right click "s
 
 !!! warning
 
-    There is a known issue with CORS which means HTSget urls routed via the NHS API platform will not work. 
+    There is a known issue with CORS which means HTSget urls routed via the NHS API platform will not work.
 
     We are working with the NHS API platform to find a solution to this
 

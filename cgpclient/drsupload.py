@@ -17,9 +17,9 @@ from cgpclient.drs import (
     AccessMethod,
     AccessMethodType,
     AccessURL,
+    CGPDrsClient,
     Checksum,
     ChecksumType,
-    CGPDrsClient,
     DrsObject,
 )
 from cgpclient.htsget import htsget_base_url, mime_type_to_htsget_endpoint
