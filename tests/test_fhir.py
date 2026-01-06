@@ -2,6 +2,7 @@
 # pylint: disable=wrong-import-order, redefined-outer-name, ungrouped-imports, line-too-long, too-many-arguments, protected-access
 
 
+import copy
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -318,16 +319,19 @@ def test_search_resource_max_results(mock_get: MagicMock, doc_ref_bundle: dict) 
 
         def json(self):
             # return a next link for the first 9 pages
+            response_bundle = copy.deepcopy(doc_ref_bundle)
             if self._page < 9:
-                doc_ref_bundle["link"] = [
+                response_bundle["link"] = [
                     {
                         "relation": "next",
                         "url": "https://example.com/fhir/DocumentReference?_page=2",
                     }
                 ]
             else:
-                doc_ref_bundle.pop("link", None)
-            return doc_ref_bundle
+                response_bundle.pop("link", None)
+            # Add 100 entries to the bundle
+            response_bundle["entry"] = response_bundle["entry"] * 100
+            return response_bundle
 
     # Reset the page counter for the class
     MockedResponse._page = 0
@@ -342,16 +346,13 @@ def test_search_resource_max_results(mock_get: MagicMock, doc_ref_bundle: dict) 
         resource_type="DocumentReference", max_results=250
     )
     assert mock_get.call_count == 3
-    # each response has 1 entry, so 3 calls should give 3 entries
-    assert len(bundle.entry) == 3
+    assert len(bundle.entry) == 250
 
     # Test default
     mock_get.reset_mock()
     MockedResponse._page = 0
     mock_get.return_value = MockedResponse()
     bundle = fhir.search_for_fhir_resource(resource_type="DocumentReference")
-    # default is 1000, so 10 pages, but the mock stops at 10 pages.
-    # (1000 + 99) // 100 = 10
-    # The mock will stop returning a next link after 10 pages.
+    # default is 1000, so 10 pages * 100 entries
     assert mock_get.call_count == 10
-    assert len(bundle.entry) == 10
+    assert len(bundle.entry) == 1000

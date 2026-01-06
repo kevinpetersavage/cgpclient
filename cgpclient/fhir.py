@@ -196,16 +196,10 @@ class CGPFHIRClient:
         self,
         url: str,
         query_params: list[tuple] | None = None,
-        max_results: int | None = None,
     ) -> Bundle:
         """Peform a search request and page through the results"""
-        if max_results is None:
-            max_results = DEFAULT_MAX_RESULTS
-
-        max_pages = (max_results + MAX_SEARCH_RESULTS - 1) // MAX_SEARCH_RESULTS
-
         pages = 1
-        while pages <= max_pages:
+        while True:
             response = requests.get(
                 url=url,
                 headers=self.headers,
@@ -231,7 +225,6 @@ class CGPFHIRClient:
                     return
             else:
                 raise CGPClientException(f"Failed to fetch from endpoint: {url}")
-        log.info("Reached maximum number of pages")
 
     def _merge_bundles(self, bundles: list[Bundle]) -> Bundle:
         """Merge a list of Bundles into a single one, retaining the
@@ -261,14 +254,26 @@ class CGPFHIRClient:
         log.info("Requesting endpoint: %s", url)
         log.info("Query parameters: %s", query_params)
 
+        if max_results is None:
+            max_results = DEFAULT_MAX_RESULTS
+
         bundles: list[Bundle] = []
+        total_results = 0
+        for bundle in self._search_paged(url=url, query_params=query_params):
+            if bundle.entry:
+                bundles.append(bundle)
+                total_results += len(bundle.entry)
+            if total_results >= max_results:
+                break
 
-        for response in self._search_paged(
-            url=url, query_params=query_params, max_results=max_results
-        ):
-            bundles.append(response)
+        if not bundles:
+            return Bundle(type="searchset", entry=[])
 
-        return self._merge_bundles(bundles)
+        merged_bundle = self._merge_bundles(bundles)
+        if merged_bundle.entry and len(merged_bundle.entry) > max_results:
+            merged_bundle.entry = merged_bundle.entry[:max_results]
+
+        return merged_bundle
 
     def search_for_tasks(self, search_params: FHIRConfig | None = None) -> list[Task]:
         query_params: list[tuple] = []
