@@ -51,10 +51,10 @@ from cgpclient.utils import (
 log = logging.getLogger(__name__)
 
 MAX_SEARCH_RESULTS = 100
+DEFAULT_MAX_RESULTS = 1000
 MAX_UNSIGNED_INT = (
     2147483647  # https://hl7.org/fhir/R4/datatypes.html#unsignedInt # noqa: E501
 )
-MAX_PAGES = 100
 
 
 # Enumerations for various FHIR resource fields
@@ -196,10 +196,16 @@ class CGPFHIRClient:
         self,
         url: str,
         query_params: list[tuple] | None = None,
+        max_results: int | None = None,
     ) -> Bundle:
         """Peform a search request and page through the results"""
+        if max_results is None:
+            max_results = DEFAULT_MAX_RESULTS
+
+        max_pages = (max_results + MAX_SEARCH_RESULTS - 1) // MAX_SEARCH_RESULTS
+
         pages = 1
-        while pages <= MAX_PAGES:
+        while pages <= max_pages:
             response = requests.get(
                 url=url,
                 headers=self.headers,
@@ -236,7 +242,10 @@ class CGPFHIRClient:
         return first
 
     def search_for_fhir_resource(
-        self, resource_type: str, query_params: list[tuple] = []
+        self,
+        resource_type: str,
+        query_params: list[tuple] = [],
+        max_results: int | None = None,
     ) -> Bundle:
         """Search for a FHIR resource using the query parameters"""
         url = f"{self.base_url}/{resource_type}"
@@ -254,7 +263,9 @@ class CGPFHIRClient:
 
         bundles: list[Bundle] = []
 
-        for response in self._search_paged(url=url, query_params=query_params):
+        for response in self._search_paged(
+            url=url, query_params=query_params, max_results=max_results
+        ):
             bundles.append(response)
 
         return self._merge_bundles(bundles)
@@ -283,7 +294,9 @@ class CGPFHIRClient:
                 )
 
     def search_for_document_references(
-        self, search_params: FHIRConfig | None = None
+        self,
+        search_params: FHIRConfig | None = None,
+        max_results: int | None = None,
     ) -> list[DocumentReference]:
         """Search for DocumentReferences using the parameters in the FHIR
         config"""
@@ -333,6 +346,7 @@ class CGPFHIRClient:
         bundle: Bundle = self.search_for_fhir_resource(
             resource_type=DocumentReference.__name__,
             query_params=query_params,
+            max_results=max_results,
         )
 
         if bundle.entry:

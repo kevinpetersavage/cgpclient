@@ -13,9 +13,7 @@ from cgpclient.utils import setup_logger
 
 def parse_args(args: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "List NGIS referrals associated with the supplied identifiers"
-        )  # noqa: E501
+        description=("List NGIS referrals associated with the supplied identifiers")  # noqa: E501
     )
     parser.add_argument(
         "-r",
@@ -29,9 +27,7 @@ def parse_args(args: list[str]) -> argparse.Namespace:
         type=str,
         help="NGIS participant ID, e.g p12345678303",
     )
-    parser.add_argument(
-        "-s", "--sample_id", type=str, help="Sample identifier"
-    )  # noqa: E501
+    parser.add_argument("-s", "--sample_id", type=str, help="Sample identifier")  # noqa: E501
     parser.add_argument(
         "-id",
         "--run_id",
@@ -150,18 +146,14 @@ def parse_args(args: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--start_date", help="Start date in ISO format (e.g. 2025-08-01)"
     )
-    parser.add_argument(
-        "--end_date", help="End date in ISO format \\" "(e.g. 2025-08-31)"
-    )
+    parser.add_argument("--end_date", help="End date in ISO format \\(e.g. 2025-08-31)")
 
     parsed: argparse.Namespace = parser.parse_args(args)
 
     if parsed.config_file and parsed.config_file.is_file():
         # if we're passed a config file use it as default values
         # and then reparse
-        config: dict = yaml.safe_load(
-            parsed.config_file.read_text(encoding="utf-8")
-        )  # noqa: E501
+        config: dict = yaml.safe_load(parsed.config_file.read_text(encoding="utf-8"))  # noqa: E501
         parser.set_defaults(**config)
         parsed = parser.parse_args(args)
 

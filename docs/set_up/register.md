@@ -6,10 +6,10 @@ To use the CGP APIs, you must first register your application on the NHS Develop
 
 Select the correct environment based on your application's stage:
 
-- **Production (Live) Applications:**  
+- **Production (Live) Applications:**
   [NHS Developer Hub – Production](https://digital.nhs.uk/developer)
 
-- **Development Applications:**  
+- **Development Applications:**
   [NHS Developer Hub – Development](https://dos-internal.ptl.api.platform.nhs.uk/)
 
 ## Registering an Application
@@ -22,4 +22,3 @@ Select the correct environment based on your application's stage:
 
 - Choose the correct environment: `Development`, `Integration`, or `Production`.
 - This environment will have to match the `--api_host` parameter in your scripts.
-

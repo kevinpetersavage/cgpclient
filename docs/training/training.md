@@ -22,7 +22,7 @@ We regularly run live workshops, and you can also explore our self-paced trainin
 
 !!! gel-attention "Upcoming Workshops"
 
-    **Date:** There are currently no workshops scheduled.  
+    **Date:** There are currently no workshops scheduled.
 
     Next workshops will include:
 
