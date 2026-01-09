@@ -636,10 +636,11 @@ class CGPClient:
             client=self,
         )
 
-    def get_files(self) -> CGPFiles:
+    def get_files(self, max_search_results=1000) -> CGPFiles:
         return CGPFiles(
             document_references=self.fhir_service.search_for_document_references(
-                search_params=self.fhir_config
+                search_params=self.fhir_config,
+                max_search_results=max_search_results
             ),
             client=self,
         )

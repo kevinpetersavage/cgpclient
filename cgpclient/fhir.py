@@ -54,7 +54,6 @@ MAX_SEARCH_RESULTS = 100
 MAX_UNSIGNED_INT = (
     2147483647  # https://hl7.org/fhir/R4/datatypes.html#unsignedInt # noqa: E501
 )
-MAX_PAGES = 100
 
 
 # Enumerations for various FHIR resource fields
@@ -199,7 +198,7 @@ class CGPFHIRClient:
     ) -> Bundle:
         """Peform a search request and page through the results"""
         pages = 1
-        while pages <= MAX_PAGES:
+        while True:
             response = requests.get(
                 url=url,
                 headers=self.headers,
@@ -236,7 +235,7 @@ class CGPFHIRClient:
         return first
 
     def search_for_fhir_resource(
-        self, resource_type: str, query_params: list[tuple] = []
+        self, resource_type: str, query_params: list[tuple] = [], max_search_results: int = MAX_SEARCH_RESULTS
     ) -> Bundle:
         """Search for a FHIR resource using the query parameters"""
         url = f"{self.base_url}/{resource_type}"
@@ -244,7 +243,7 @@ class CGPFHIRClient:
         if query_params is None:
             query_params = []
 
-        query_params.append(("_count", str(MAX_SEARCH_RESULTS)))
+        query_params.append(("_count", str(max_search_results)))
 
         if self.config.workspace_id is not None:
             query_params.append(("_tag", self.config.workspace_id))
@@ -283,7 +282,9 @@ class CGPFHIRClient:
                 )
 
     def search_for_document_references(
-        self, search_params: FHIRConfig | None = None
+        self,
+        search_params: FHIRConfig | None = None,
+        max_search_results : int = MAX_SEARCH_RESULTS
     ) -> list[DocumentReference]:
         """Search for DocumentReferences using the parameters in the FHIR
         config"""
@@ -333,6 +334,7 @@ class CGPFHIRClient:
         bundle: Bundle = self.search_for_fhir_resource(
             resource_type=DocumentReference.__name__,
             query_params=query_params,
+            max_search_results=max_search_results
         )
 
         if bundle.entry:

@@ -269,7 +269,9 @@ def test_get_headers() -> None:
 def test_list_files(mock_search: MagicMock, document_reference: dict, tmp_path) -> None:
     client: CGPClient = CGPClient(api_host="host", api_key="key")
     mock_search.return_value = [DocumentReference.parse_obj(document_reference)]
-    files: CGPFiles = client.get_files()
+    max_search_results = 20
+
+    files: CGPFiles = client.get_files(max_search_results)
     assert len(files) == 1
     file: CGPFile = files[0]
     assert file.participant_id == document_reference["subject"]["identifier"]["value"]
@@ -279,6 +281,11 @@ def test_list_files(mock_search: MagicMock, document_reference: dict, tmp_path) 
         lines = out.read().splitlines()
         assert len(lines) == 2
 
+    # check that the max results is passed through
+    mock_search.assert_called_once_with(
+        search_params=client.fhir_config,
+        max_search_results=max_search_results
+    )
 
 @patch("cgpclient.drsupload.DrsUploader.upload_files")
 @patch("cgpclient.fhir.CGPFHIRClient.post_fhir_resource")

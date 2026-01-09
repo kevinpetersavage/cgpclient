@@ -257,8 +257,15 @@ def test_search_resource(mock_get: MagicMock, doc_ref_bundle: dict) -> None:
     fhir: CGPFHIRClient = CGPFHIRClient(
         api_base_url="host", headers={}, config=config, dry_run=False
     )
-    resource = fhir.search_for_fhir_resource(resource_type="DocumentReference")
+    resource = fhir.search_for_fhir_resource(resource_type="DocumentReference", max_search_results=10)
     assert resource.entry and len(resource.entry) == 1
+
+    mock_get.assert_called_once_with(
+        url='https://host/FHIR/R4/DocumentReference',
+        headers=dict(),
+        params=[('_count', '10')],
+        timeout=30,
+    )
 
 
 @patch("cgpclient.fhir.requests.get")
